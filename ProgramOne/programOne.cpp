@@ -3,8 +3,7 @@ Author: Peter O'Donohue
 Creation Date: 05/22/17
 Modification Date: 05/23/17
 Description: This program will prompt you for input data to setup a board scenario for the game "Othello".
-The program will then compute the optimal move, and output it's location to you.
-given situation, and will finish by outputing that position to you.
+The program will then compute the optimal move or moves, and output their location to you.
 */
 
 #include <iostream>
@@ -35,7 +34,7 @@ private:
 	int colNum = 0;  // stores column number from user given input
 	int numBlack = 0;  // stores number of black spaces
 	int numWhite = 0;  // stores number of white spaces
-	char colorChoice = ' ';  // stores color of square 
+	char colorChoice = 'c';  // stores color of square 
 	int totalNumColors = 0;  // stores number of squares containing color
 };
 
@@ -69,13 +68,22 @@ int Board::count(char color)
 	// POST: total amount of squares containing color choice has 
 	// been computed and returned to the main function
 
-	for (int i = 0; i < SIZE; ++i)  // search entire array
-		for (int j = 0; j < SIZE; ++j)
-		{
-			if (board[i][j] == color)
-				++totalNumColors;  // increments color amount if square contains user's color choice.
-		}
-	return totalNumColors;
+	if (color == 'w' || color == 'b' || color == ' ')
+	{
+		for (int i = 0; i < SIZE; ++i)  // search entire array
+			for (int j = 0; j < SIZE; ++j)
+			{
+				if (board[i][j] == color)
+					++totalNumColors;  // increments color amount if square contains user's color choice.
+			}
+		return totalNumColors;
+	}
+	else
+	{
+		cout << "Enter a valid color choice: ";
+		cin >> color;
+		return count(color);
+	}
 }
 
 void Board::setNumPieces()
@@ -120,7 +128,8 @@ void Board::setBoard()
 		cout << "Enter the row and column number for the location of a piece: " << endl
 			<< "your first input (i.e. 2, 3): ";
 		cin >> tempRow >> tempCol;
-		while (((7 < tempRow) || (tempRow < 0)) || ((7 < tempCol) || (tempCol < 0)))
+		while ( (7 < tempRow || tempRow < 0 ) || ( 7 < tempCol || tempCol < 0 ) 
+			   || (Board::board[(SIZE - 1) - tempRow][tempCol] != ' ') )
 		{
 			cout << "Invalid row or column number." << endl << "Enter the correct row and column number: ";
 			cin >> tempRow >> tempCol;
@@ -161,24 +170,38 @@ void Board::displayBoard()
 		cout << endl;
 	}
 }
-void Board::set(int row, int col, char color)
+void Board::set(int row, int col, char color = ' ')
 {
 	// PRE: the row, column, and color variables must be initialized
 	// by the user and passed through the function as arguments
 	// POST: the element in array 'board' at the designated location
 	// at 'row' and 'col' has been intitialized with char 'color'
 
-	if ((row <= 7 && row >= 0) && (col <= 7 && col >= 0) && (color == 'w' || color == 'b'))
+	// verify user choice for column, row, and color are within scope
+	if ((row <= 7 && row >= 0) && (col <= 7 && col >= 0) && (color == 'w' || color == 'b' || color == ' '))
 	{
-			rowNum = row;
-			colNum = col;
-			colorChoice = color;
-			if (color == w)
-				Board::board[(SIZE - 1) - rowNum][colNum] = w;
-			else
-				Board::board[(SIZE - 1) - rowNum][colNum] = b;
+		rowNum = row;
+		colNum = col;
+		colorChoice = color;
 	}
-	else
+	switch (colorChoice)
+	{
+	case ('w'):  // if caller chose white set that square to white
+	{
+		Board::board[(SIZE - 1) - rowNum][colNum] = 'w';
+		break;
+	}
+	case ('b'):  // if caller chose black then set the square to black
+	{
+		Board::board[(SIZE - 1) - rowNum][colNum] = 'b';
+		break;
+	}
+	case (' '):  // if caller chose blank then set the square to be blank
+	{
+		Board::board[(SIZE - 1) - rowNum][colNum] = ' ';
+		break;
+	}
+	default: // if value is outside of scope
 	{
 		cout << "ERROR: row, column, and or your color choice are invalid." << endl
 			<< "Enter the row, column, and choice of color: ";
@@ -186,26 +209,16 @@ void Board::set(int row, int col, char color)
 		color = tolower(color);
 		Board::set(row, col, color);
 	}
+	}
 }
-
-// function declarations
-void exit();  // displays exit message to user
 
 int main()
 {
-	char color = ' ';
+	int total = 0;
 	Board userInput;  // declare object of type board to store user's input
-	userInput.setNumPieces();
-	userInput.setBoard();
+	userInput.setNumPieces(); // set the number of white and black pieces
+	userInput.setBoard();  // setup the board with user provided data
 	userInput.displayBoard();  // display board to user
-	exit();
 	system("pause");
 	return 1;
-}
-
-// display exit message
-void exit()
-{
-	cout << "Thanks for using this program, goodbye." << endl;
-	return;
 }
