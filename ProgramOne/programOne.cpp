@@ -3,11 +3,13 @@ Author: Peter O'Donohue
 Creation Date: 05/22/17
 Modification Date: 05/23/17
 Description: This program will prompt you for input data to setup a board scenario for the game "Othello".
-The program will then compute the optimal move or moves, and output their location to you.
+You'll first input how many of each color disk is in play, with the white disks representing you and the black disks
+representing your opponent. The program will then prompt you to enter the row and column location of the white disks first,
+followed by the location of each black disk. The program will finish by computing the move or moves that flip the most opposing
+disks, and will then print the location of this disk and the resulting score.
 */
 
 #include <iostream>
-#include <iomanip>
 using namespace std;
 
 const int SIZE = 8; // used to set the maximum row and column limits
@@ -16,13 +18,13 @@ const int SIZE = 8; // used to set the maximum row and column limits
 class Board {
 	char board[SIZE][SIZE]; // each square holds 'b', 'w', or ' '
 public:
-
 	Board();  //initializes the board to all blanks
 	int count(char color);  // returns the number of squares containing color
 	void setNumPieces();  // sets the number of white and black pieces each
-	void setBoard();
+	void setBoard();  // sets up the board with player input data
 	void set(int row, int col, char color); // sets the square at (row, col) to color
-	void displayBoard();
+	void displayBoard();  //  prints out the board
+	int computeCol(int i, int j, int colMax);
 	int resultOfMove(int row, int col, char color);  // returns the number of color - number of other color
 													   // when a disk of color is placed at (row, col)
 	int bestMove(int & row, int &col, char color);  // returns the max resultOfMove(row,col)
@@ -34,12 +36,11 @@ private:
 	int colNum = 0;  // stores column number from user given input
 	int numBlack = 0;  // stores number of black spaces
 	int numWhite = 0;  // stores number of white spaces
-	char colorChoice = 'c';  // stores color of square 
 	int totalNumColors = 0;  // stores number of squares containing color
+	char colorChoice = 'c';  // stores color of square 
 };
 
 // class Board member function definitions
-
 Board::Board()
 {
 	// PRE: char array 'board' has been declared
@@ -47,10 +48,17 @@ Board::Board()
 	// Instructions are printed to user
 	
 	// display instructions
-	cout << "Hello, This program will prompt you for input data to setup" << endl
-		<< "a board scenario for the game 'Othello'. It will then compute" << endl
-		<< "the optimal move or moves, and output their locations to you." << endl << endl;
-
+	cout << "This program will prompt you for the input data to setup a board scenario" << endl
+		 << "for the game Othello. The board is 8x8, with a resulting 64 total spaces," << endl
+		 << "and with the rows and columns numbered 0 - 7. You'll first input how many of" << endl
+		 << "each color disk are in play, with the white disks representing you and" << endl
+		 << "the black disks representing your opponent. The program will then prompt" << endl
+		 << "you to enter the row and column location of the white disks first," << endl
+		 << "followed by the location of each black disk. The program will finish" << endl
+		 << "by computing the move or moves that flip the most opposing disks, and" << endl
+		 << "will then print the location of this disk and the resulting score." << endl << endl;
+		
+	// read through array
 	for (int i = 0; i < SIZE; ++i)
 	{
 		for (int j = 0; j < SIZE; ++j)
@@ -60,7 +68,6 @@ Board::Board()
 	}
 	return;
 }
-
 int Board::count(char color)
 {
 	// PRE: a color choice of type char must be initialized and 
@@ -68,9 +75,9 @@ int Board::count(char color)
 	// POST: total amount of squares containing color choice has 
 	// been computed and returned to the main function
 
-	if (color == 'w' || color == 'b' || color == ' ')
+	if (color == 'w' || color == 'b' || color == ' ')  // verify user's choice is within scope
 	{
-		for (int i = 0; i < SIZE; ++i)  // search entire array
+		for (int i = 0; i < SIZE; ++i)  // read array
 			for (int j = 0; j < SIZE; ++j)
 			{
 				if (board[i][j] == color)
@@ -85,18 +92,17 @@ int Board::count(char color)
 		return count(color);
 	}
 }
-
 void Board::setNumPieces()
 {
-	// PRE: values for function arguments have been defined by user
-	// POST: data provided by user has been verified to be legal
+	// PRE: the object userInput has been created
+	// POST: data provided by user has been verified to be withing scope
 	// private data members are assigned these values
 
-	int numWhiteSpaces = 0;  // stores user entered data for the total number of white spaces
-	int numBlackSpaces = 0;  // stores user entered data for the total number of black spaces
-	// prompt user for total number of white and black spaces each
-	cout << "Please enter the total number of white and" << endl
-		<< "black spaces, seperating each by a space: " << endl;
+	int numWhiteSpaces = 0;  // stores user entered data for the total number of white disks
+	int numBlackSpaces = 0;  // stores user entered data for the total number of black disks
+	// prompt user for total number of white and black disks each
+	cout << "Enter the total number of white and" << endl
+		<< "black spaces, seperating each by a space: ";
 	cin >> numWhiteSpaces >> numBlackSpaces;
 	// verify data is within scope of legal data
 	while ((numWhiteSpaces <= 0 || numWhiteSpaces > 64) || (numBlackSpaces <= 0 || numBlackSpaces > 64)
@@ -111,12 +117,11 @@ void Board::setNumPieces()
 	numBlack = numBlackSpaces;
 	return;
 }
-
 void Board::setBoard()
 {
-	// PRE: row and col values must be declared by the user
-	// POST: row and col values have been verified to be legal data values
-	// array element at row and col has been given a value
+	// PRE: row and col values must be passed by the user
+	// POST: row and col values have been verified to be withing scope
+	// array element at row and col has been assigned a value of white black or blank
 
 	int tempRow = 0;  // stores row value before verifying if value is legal
 	int tempCol = 0;  // stores column value before verifying if value is legal
@@ -125,11 +130,12 @@ void Board::setBoard()
 
 	for (int i = 0; i < numWhite + numBlack; ++i)
 	{
-		cout << "Enter the row and column number for the location of a piece: " << endl
-			<< "your first input (i.e. 2, 3): ";
+		// prompt for location of disk
+		cout << "Enter the row and column number for the" << endl
+			 << "location of a disk, seperating each by a space: ";
 		cin >> tempRow >> tempCol;
-		while ( (7 < tempRow || tempRow < 0 ) || ( 7 < tempCol || tempCol < 0 ) 
-			   || (Board::board[(SIZE - 1) - tempRow][tempCol] != ' ') )
+		while ((7 < tempRow || tempRow < 0) || (7 < tempCol || tempCol < 0)
+			|| (Board::board[(SIZE - 1) - tempRow][tempCol] != ' '))
 		{
 			cout << "Invalid row or column number." << endl << "Enter the correct row and column number: ";
 			cin >> tempRow >> tempCol;
@@ -150,7 +156,6 @@ void Board::setBoard()
 	}
 	return;
 }
-
 void Board::displayBoard()
 {
 	// PRE: user has initialized board array
@@ -170,38 +175,35 @@ void Board::displayBoard()
 		cout << endl;
 	}
 }
+
 void Board::set(int row, int col, char color = ' ')
 {
-	// PRE: the row, column, and color variables must be initialized
-	// by the user and passed through the function as arguments
+	// PRE: the values of row, col, and color have been passed
+	// passed through the function as arguments after being defined
 	// POST: the element in array 'board' at the designated location
-	// at 'row' and 'col' has been intitialized with char 'color'
+	// at 'row' and 'col' has been intitialized with color
 
 	// verify user choice for column, row, and color are within scope
-	if ((row <= 7 && row >= 0) && (col <= 7 && col >= 0) && (color == 'w' || color == 'b' || color == ' '))
+	if ((row <= 7 && row >= 0) && (col <= 7 && col >= 0) && ( (color == 'w') || (color == 'b') || (color == ' ') ) )
 	{
 		rowNum = row;
 		colNum = col;
 		colorChoice = color;
 	}
-	switch (colorChoice)
-	{
-	case ('w'):  // if caller chose white set that square to white
+	
+	if (colorChoice == 'w')  // if caller chose white set that square to white
 	{
 		Board::board[(SIZE - 1) - rowNum][colNum] = 'w';
-		break;
 	}
-	case ('b'):  // if caller chose black then set the square to black
+	else if (colorChoice == 'b')  // if caller chose black then set the square to black
 	{
 		Board::board[(SIZE - 1) - rowNum][colNum] = 'b';
-		break;
 	}
-	case (' '):  // if caller chose blank then set the square to be blank
+	else if (colorChoice == ' ')  // if caller chose blank then set the square to be blank
 	{
 		Board::board[(SIZE - 1) - rowNum][colNum] = ' ';
-		break;
 	}
-	default: // if value is outside of scope
+	else// if value is outside of scope
 	{
 		cout << "ERROR: row, column, and or your color choice are invalid." << endl
 			<< "Enter the row, column, and choice of color: ";
@@ -209,8 +211,59 @@ void Board::set(int row, int col, char color = ' ')
 		color = tolower(color);
 		Board::set(row, col, color);
 	}
-	}
 }
+
+int Board::resultOfMove(int row, int col, char color)
+{
+	rowNum = (SIZE - 1) - row;
+	colNum = col;
+	int tempMaxOne = 0;  // store result of first flank
+	int tempMaxTwo = 0;  // store result of second flank
+	colorChoice = color;
+	for (int i = -1; i <= -1; ++i)
+	{
+		for (int j = -1; j <= -1; ++j)
+		{
+			if ((board[rowNum - i][colNum + i] == 'b') && (i != 0 && j != 0))
+			{
+				++tempMaxOne;
+				++tempMaxTwo;
+			}
+			else
+			{
+				cout << "ZERO:" << endl;
+				tempMaxTwo = 0;
+			}
+				// if square is bottom left of placement
+				if ((i == -1) && (j == -1))
+				{
+					for (int k = rowNum + 2; k <= 7; ++k)
+					{
+						if (board[k][(SIZE - 1) - k] == 'b')
+						{
+							++tempMaxTwo;
+						}
+						else if (board[k][(SIZE - 1) - k] == 'w')
+						{
+							k = 8;
+							cout << "ran into 'w'" << endl;
+						}
+						else if (board[k][(SIZE - 1) - k] == ' ')
+						{
+							k = 8;
+							cout << "ran into 0" << endl;
+						}
+					}
+				}
+
+		}
+	}
+
+	displayBoard();
+	cout << tempMaxTwo;
+	return tempMaxTwo;
+}
+
 
 int main()
 {
@@ -219,6 +272,14 @@ int main()
 	userInput.setNumPieces(); // set the number of white and black pieces
 	userInput.setBoard();  // setup the board with user provided data
 	userInput.displayBoard();  // display board to user
+	userInput.resultOfMove(7, 7, 'w');
+	
+	// search every space on the board
+	for (int i = 0; i < SIZE; ++i)
+		for (int j = 0; j < SIZE; ++j)
+		{
+			//userInput.resultOfMove[i][j];
+		}
 	system("pause");
 	return 1;
 }
