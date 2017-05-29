@@ -19,23 +19,28 @@ class Board {
 	char board[SIZE][SIZE]; // each square holds 'b', 'w', or ' '
 public:
 	Board();  //initializes the board to all blanks
-	int count(char color);  // returns the number of squares containing color
+	bool inBound(int row, int col);
+	bool legalMove(int row, int col);
+	bool checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& count);
 	void setNumPieces();  // sets the number of white and black pieces each
 	void setBoard();  // sets up the board with player input data
 	void set(int row, int col, char color); // sets the square at (row, col) to color
 	void displayBoard();  //  prints out the board
-	int computeCol(int i, int j, int colMax);
+	int count(char color);  // returns the number of squares containing color
+	int bestMove(int&  row, int& col, char color);  // returns the max resultOfMove(row,col)
 	int resultOfMove(int row, int col, char color);  // returns the number of color - number of other color
 													   // when a disk of color is placed at (row, col)
-	int bestMove(int & row, int &col, char color);  // returns the max resultOfMove(row,col)
 private:     
-	int w = (int)'w';  // value to represent white space
-	int b = (int)'b'; // value to represent a black space
+	int diskCount = 0;
 	int blank = (int)' ';  // int to represent a blank space
 	int rowNum = 0;  // stores row number from user given input
 	int colNum = 0;  // stores column number from user given input
 	int numBlack = 0;  // stores number of black spaces
 	int numWhite = 0;  // stores number of white spaces
+	int deltaRow = 0;
+	int deltaCol = 0;
+	int currentRow = 0;
+	int currentCol = 0;
 	int totalNumColors = 0;  // stores number of squares containing color
 	char colorChoice = 'c';  // stores color of square 
 };
@@ -67,6 +72,40 @@ Board::Board()
 		}
 	}
 	return;
+}
+bool Board::inBound(int row, int col)
+{
+	if (row >= 0 && row <= 7 && col >= 0 && col <= 7)
+		return true;
+}
+bool Board::legalMove(int row, int col)
+{
+	if (board[row][col] == ' ')
+		return true;
+}
+bool Board::checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& tempCount)
+{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+			{
+				if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+					return true;
+				else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				{
+					++tempCount;
+					if (deltaRow < 0)
+							--deltaRow;
+					if (deltaRow > 0)
+							++deltaRow;
+					if (deltaCol < 0)
+							--deltaCol;
+					if (deltaCol > 0)
+							++deltaCol;
+				}
+				if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+						return false;
+			}
+			
+		
 }
 int Board::count(char color)
 {
@@ -175,7 +214,6 @@ void Board::displayBoard()
 		cout << endl;
 	}
 }
-
 void Board::set(int row, int col, char color = ' ')
 {
 	// PRE: the values of row, col, and color have been passed
@@ -212,74 +250,75 @@ void Board::set(int row, int col, char color = ' ')
 		Board::set(row, col, color);
 	}
 }
-
 int Board::resultOfMove(int row, int col, char color)
 {
-	rowNum = (SIZE - 1) - row;
-	colNum = col;
-	int tempMaxOne = 0;  // store result of first flank
-	int tempMaxTwo = 0;  // store result of second flank
-	colorChoice = color;
-	for (int i = -1; i <= -1; ++i)
-	{
-		for (int j = -1; j <= -1; ++j)
+	int moveCount = 0;
+	int tempCount = 0;
+	for (int i = -1; i <= 1; ++i)
+		for (int j = -1; j <= 1; ++j)
 		{
-			if ((board[rowNum - i][colNum + i] == 'b') && (i != 0 && j != 0))
+			if (board[row + (1 * i)][col + (1 * j)] == color)
 			{
-				++tempMaxOne;
-				++tempMaxTwo;
-			}
-			else
-			{
-				cout << "ZERO:" << endl;
-				tempMaxTwo = 0;
-			}
-				// if square is bottom left of placement
-				if ((i == -1) && (j == -1))
+				++tempCount;
+				currentRow = row + (1 * i);
+				currentCol = col + (1 * j);
+				deltaRow = 1 * i;
+				deltaCol = 1 * j;
+				if (checkFlank(deltaRow, deltaCol, currentRow, currentCol, tempCount))
 				{
-					for (int k = rowNum + 2; k <= 7; ++k)
-					{
-						if (board[k][(SIZE - 1) - k] == 'b')
-						{
-							++tempMaxTwo;
-						}
-						else if (board[k][(SIZE - 1) - k] == 'w')
-						{
-							k = 8;
-							cout << "ran into 'w'" << endl;
-						}
-						else if (board[k][(SIZE - 1) - k] == ' ')
-						{
-							k = 8;
-							cout << "ran into 0" << endl;
-						}
-					}
+					moveCount += tempCount;
+					tempCount = 0;
 				}
-
+				else
+					tempCount = 0;
+				 
+			}
 		}
-	}
-
-	displayBoard();
-	cout << tempMaxTwo;
-	return tempMaxTwo;
+	cout << moveCount << " ";
+	return moveCount;
 }
-
+int Board::bestMove(int& row, int& col, char color)
+{
+	int numBlack = 0;
+	int maxNumBlack = 0;
+	for (int i = 0; i < SIZE; ++i)
+		for (int j = 0; j < SIZE; ++j)
+		{
+			numBlack = resultOfMove(i, j, color);
+			if (numBlack >= maxNumBlack)
+			{
+				maxNumBlack = numBlack;
+				row = i;
+				col = j;
+			}
+		}
+	
+	cout << maxNumBlack << " ";
+	return maxNumBlack;
+}
 
 int main()
 {
 	int total = 0;
+	int finalTotal = 0;
+	int bestRow = 0;
+	int bestCol = 0;
+	int numBlack = 0;
+	int numWhite = 0;
 	Board userInput;  // declare object of type board to store user's input
 	userInput.setNumPieces(); // set the number of white and black pieces
 	userInput.setBoard();  // setup the board with user provided data
-	userInput.displayBoard();  // display board to user
-	userInput.resultOfMove(7, 7, 'w');
-	
-	// search every space on the board
-	for (int i = 0; i < SIZE; ++i)
-		for (int j = 0; j < SIZE; ++j)
-		{
-			//userInput.resultOfMove[i][j];
-		}
+	numWhite = userInput.count('w');
+	numBlack = userInput.count('b');
+	//userInput.displayBoard();  // display board to user
+	cout << "Finished numBlack and numWhite" << endl;
+	total = userInput.bestMove(bestRow, bestCol, 'b');
+	cout << "Finished best move function" << endl;
+	numBlack = numBlack - total;
+	numWhite = numWhite + total;
+	finalTotal = numWhite - numBlack;
+	cout << bestRow << " " << bestCol << " " << finalTotal << endl;
+	cout << "Thanks!";
 	system("pause");
-	return 1;
+	return 0;
 }
