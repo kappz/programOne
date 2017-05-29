@@ -85,27 +85,124 @@ bool Board::legalMove(int row, int col)
 }
 bool Board::checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& tempCount)
 {
+	++tempCount;
+	if (deltaRow == -1 && deltaCol == -1)
+	{
 		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
 			{
-				if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
-					return true;
-				else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
-				{
-					++tempCount;
-					if (deltaRow < 0)
-							--deltaRow;
-					if (deltaRow > 0)
-							++deltaRow;
-					if (deltaCol < 0)
-							--deltaCol;
-					if (deltaCol > 0)
-							++deltaCol;
-				}
-				if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
-						return false;
+				return false;
 			}
-			
-		
+			--deltaRow;
+			--deltaCol;
+		}
+	}
+
+	else if (deltaRow == -1 && deltaCol == 0)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			--deltaRow;
+		}
+	}
+
+	else if (deltaRow == -1 && deltaCol == 1)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			--deltaRow;
+			++deltaCol;
+		}
+	}
+
+	else if (deltaRow == 0 && deltaCol == -1)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			--deltaCol;
+		}
+	}
+
+	else if (deltaRow == 0 && deltaCol == 1)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			++deltaCol;
+		}
+	}
+
+	else if (deltaRow == 1 && deltaCol == -1)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			++deltaRow;
+			--deltaCol;
+		}
+	}
+	
+	else if (deltaRow == 1 && deltaCol == 0)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			++deltaRow;
+		}
+	}
+
+	else if (deltaRow == 1 && deltaCol == 1)
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+				return true;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+				++tempCount;
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				return false;
+			++deltaRow;
+			++deltaCol;
+		}
+	}
 }
 int Board::count(char color)
 {
@@ -116,11 +213,14 @@ int Board::count(char color)
 
 	if (color == 'w' || color == 'b' || color == ' ')  // verify user's choice is within scope
 	{
+		int numColor = 0;
+		totalNumColors = numColor;
 		for (int i = 0; i < SIZE; ++i)  // read array
 			for (int j = 0; j < SIZE; ++j)
 			{
 				if (board[i][j] == color)
-					++totalNumColors;  // increments color amount if square contains user's color choice.
+					++totalNumColors;
+				// increments color amount if square contains user's color choice.
 			}
 		return totalNumColors;
 	}
@@ -255,26 +355,28 @@ int Board::resultOfMove(int row, int col, char color)
 	int moveCount = 0;
 	int tempCount = 0;
 	for (int i = -1; i <= 1; ++i)
+	{
 		for (int j = -1; j <= 1; ++j)
 		{
 			if (board[row + (1 * i)][col + (1 * j)] == color)
 			{
-				++tempCount;
+				
 				currentRow = row + (1 * i);
 				currentCol = col + (1 * j);
 				deltaRow = 1 * i;
 				deltaCol = 1 * j;
-				if (checkFlank(deltaRow, deltaCol, currentRow, currentCol, tempCount))
-				{
-					moveCount += tempCount;
-					tempCount = 0;
-				}
-				else
-					tempCount = 0;
-				 
+				
+			if (checkFlank(deltaRow, deltaCol, currentRow, currentCol, tempCount))
+			{
+				moveCount += tempCount;
+				tempCount = 0;
+			}
+			else
+				tempCount = 0;
 			}
 		}
-	cout << moveCount << " ";
+	}
+	//cout << moveCount;
 	return moveCount;
 }
 int Board::bestMove(int& row, int& col, char color)
@@ -282,20 +384,24 @@ int Board::bestMove(int& row, int& col, char color)
 	int numBlack = 0;
 	int maxNumBlack = 0;
 	for (int i = 0; i < SIZE; ++i)
+	{
 		for (int j = 0; j < SIZE; ++j)
 		{
-			numBlack = resultOfMove(i, j, color);
-			if (numBlack >= maxNumBlack)
+			if (board[i][j] == ' ')
 			{
-				maxNumBlack = numBlack;
-				row = i;
-				col = j;
+				numBlack = resultOfMove(i, j, color);
+				//	cout << numBlack << " ";
+				if (numBlack >= maxNumBlack)
+				{
+					maxNumBlack = numBlack;
+					row = i;
+					col = j;
+				}
 			}
 		}
-	
-	cout << maxNumBlack << " ";
+	}
 	return maxNumBlack;
-}
+} 
 
 int main()
 {
@@ -311,14 +417,11 @@ int main()
 	numWhite = userInput.count('w');
 	numBlack = userInput.count('b');
 	//userInput.displayBoard();  // display board to user
-	cout << "Finished numBlack and numWhite" << endl;
 	total = userInput.bestMove(bestRow, bestCol, 'b');
-	cout << "Finished best move function" << endl;
 	numBlack = numBlack - total;
-	numWhite = numWhite + total;
+	numWhite = (numWhite + 1) + total;
 	finalTotal = numWhite - numBlack;
-	cout << bestRow << " " << bestCol << " " << finalTotal << endl;
-	cout << "Thanks!";
+	cout << (SIZE -1) - bestRow << " " << bestCol << " " << finalTotal << endl;
 	system("pause");
 	return 0;
 }
