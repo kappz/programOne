@@ -1,7 +1,7 @@
 /*
 Author: Peter O'Donohue
 Creation Date: 05/22/17
-Modification Date: 05/23/17
+Modification Date: 05/29/17
 Description: This program will prompt you for input data to setup a board scenario for the game "Othello".
 You'll first input how many of each color disk is in play, with the white disks representing you and the black disks
 representing your opponent. The program will then prompt you to enter the row and column location of the white disks first,
@@ -19,30 +19,23 @@ class Board {
 	char board[SIZE][SIZE]; // each square holds 'b', 'w', or ' '
 public:
 	Board();  //initializes the board to all blanks
-	bool inBound(int row, int col);
-	bool legalMove(int row, int col);
-	bool checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& count);
+	bool inBound(int row, int col);  // verifies array bounds aren't exceeded
+	bool checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& count);  // checks and computes flanks
 	void setNumPieces();  // sets the number of white and black pieces each
-	void setBoard();  // sets up the board with player input data
-	void set(int row, int col, char color); // sets the square at (row, col) to color
-	void displayBoard();  //  prints out the board
+	void set();  // sets up the board with player input data
 	int count(char color);  // returns the number of squares containing color
 	int bestMove(int&  row, int& col, char color);  // returns the max resultOfMove(row,col)
-	int resultOfMove(int row, int col, char color);  // returns the number of color - number of other color
-													   // when a disk of color is placed at (row, col)
+	int resultOfMove(int row, int col, char color);  // computes result of placing a white disk at a legal square
 private:     
-	int diskCount = 0;
-	int blank = (int)' ';  // int to represent a blank space
 	int rowNum = 0;  // stores row number from user given input
 	int colNum = 0;  // stores column number from user given input
 	int numBlack = 0;  // stores number of black spaces
 	int numWhite = 0;  // stores number of white spaces
-	int deltaRow = 0;
-	int deltaCol = 0;
-	int currentRow = 0;
-	int currentCol = 0;
-	int totalNumColors = 0;  // stores number of squares containing color
-	char colorChoice = 'c';  // stores color of square 
+	int deltaRow = 0;  // stores change in row
+	int deltaCol = 0;  // stores change in column
+	int currentRow = 0;  // stores current row
+	int currentCol = 0;  // stores current column
+	char colorChoice = ' ';  // stores color of square 
 };
 
 // class Board member function definitions
@@ -75,134 +68,154 @@ Board::Board()
 }
 bool Board::inBound(int row, int col)
 {
-	if (row >= 0 && row <= 7 && col >= 0 && col <= 7)
+	// PRE: row and col have been initialized with a value 
+	// POST: row and col have been verified to be within bounds of array 'board'
+
+	if (row >= 0 && row <= 7 && col >= 0 && col <= 7) // verifies both row and col are withing array dimensions
 		return true;
+	else
+		return false;
 }
-bool Board::legalMove(int row, int col)
-{
-	if (board[row][col] == ' ')
-		return true;
-}
+
 bool Board::checkFlank(int deltaRow, int deltaCol, int currentRow, int currentCol, int& tempCount)
 {
+	// PRE: resultOfMove function has been called and all arguements have been initialized
+	// POST: a column, row, or diagonal has been determined to be either true or false
 	++tempCount;
-	if (deltaRow == -1 && deltaCol == -1)
+	if (deltaRow == -1 && deltaCol == -1) // checks bottom left diagonal of placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')  // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
-				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
 			{
-				return false;
+				++tempCount;
+				--deltaRow;
+				--deltaCol;
 			}
-			--deltaRow;
-			--deltaCol;
+			else 
+				return false;
 		}
 	}
 
-	else if (deltaRow == -1 && deltaCol == 0)
+	else if (deltaRow == -1 && deltaCol == 0)  // checks row below placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
 				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				--deltaRow;
+			}
+			else 
 				return false;
-			--deltaRow;
 		}
 	}
 
-	else if (deltaRow == -1 && deltaCol == 1)
+	else if (deltaRow == -1 && deltaCol == 1)  // check bottom right diagonal of placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
 				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				--deltaRow;
+				++deltaCol;
+			}
+			else 
 				return false;
-			--deltaRow;
+		}
+	}
+
+	else if (deltaRow == 0 && deltaCol == -1)  // checks left side row of placement
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
+				return true;
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'   
+			{
+				++tempCount;
+				--deltaCol;
+			}
+			else 
+				return false;
+		}
+	}
+
+	else if (deltaRow == 0 && deltaCol == 1)  // checks right side row of placement
+	{
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
+		{
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
+				return true;
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
+				++tempCount;
+				++deltaCol;
+			}
+			else 
+				return false;
 			++deltaCol;
 		}
 	}
 
-	else if (deltaRow == 0 && deltaCol == -1)
+	else if (deltaRow == 1 && deltaCol == -1)  // checks top left diagonal of placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
 				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				++deltaRow;
+				--deltaCol;
+			}
+			else 
 				return false;
-			--deltaCol;
-		}
-	}
-
-	else if (deltaRow == 0 && deltaCol == 1)
-	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
-		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
-				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
-				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
-				return false;
-			++deltaCol;
-		}
-	}
-
-	else if (deltaRow == 1 && deltaCol == -1)
-	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
-		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
-				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
-				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
-				return false;
-			++deltaRow;
-			--deltaCol;
 		}
 	}
 	
-	else if (deltaRow == 1 && deltaCol == 0)
+	else if (deltaRow == 1 && deltaCol == 0)  // checks column above placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
 				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				++deltaRow;
+			}
+			else 
 				return false;
-			++deltaRow;
 		}
 	}
 
-	else if (deltaRow == 1 && deltaCol == 1)
+	else if (deltaRow == 1 && deltaCol == 1)  // checks top right diagonal of placement
 	{
-		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))
+		while (inBound(currentRow + (1 * deltaRow), currentCol + (1 * deltaCol)))  // verify function stays within array bounds
 		{
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w')
+			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'w') // returns true if a 'w' is encountered
 				return true;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')
+			else if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == 'b')  // increments counter if square is 'b'
+			{
 				++tempCount;
-			if (board[currentRow + (1 * deltaRow)][currentCol + (1 * deltaCol)] == ' ')
+				++deltaRow;
+				++deltaCol;
+			}
+			else 
 				return false;
-			++deltaRow;
-			++deltaCol;
 		}
 	}
+	else
+		return false;
 }
 int Board::count(char color)
 {
@@ -214,6 +227,7 @@ int Board::count(char color)
 	if (color == 'w' || color == 'b' || color == ' ')  // verify user's choice is within scope
 	{
 		int numColor = 0;
+		int totalNumColors = 0;  // stores number of squares containing color
 		totalNumColors = numColor;
 		for (int i = 0; i < SIZE; ++i)  // read array
 			for (int j = 0; j < SIZE; ++j)
@@ -256,7 +270,7 @@ void Board::setNumPieces()
 	numBlack = numBlackSpaces;
 	return;
 }
-void Board::setBoard()
+void Board::set()
 {
 	// PRE: row and col values must be passed by the user
 	// POST: row and col values have been verified to be withing scope
@@ -267,106 +281,61 @@ void Board::setBoard()
 
 	// prompt user for first input data
 
-	for (int i = 0; i < numWhite + numBlack; ++i)
-	{
-		// prompt for location of disk
-		cout << "Enter the row and column number for the" << endl
-			 << "location of a disk, seperating each by a space: ";
-		cin >> tempRow >> tempCol;
-		while ((7 < tempRow || tempRow < 0) || (7 < tempCol || tempCol < 0)
-			|| (Board::board[(SIZE - 1) - tempRow][tempCol] != ' '))
+
+		for (int i = 0; i < numWhite; ++i)
 		{
-			cout << "Invalid row or column number." << endl << "Enter the correct row and column number: ";
+			cout << "Enter the row and column number for a white disk: ";
 			cin >> tempRow >> tempCol;
-		}
-
-		if (i < numWhite)
-		{
+			// verifiy placement is withing bound
+			while ((!inBound(tempRow, tempCol)) || (Board::board[(SIZE - 1) - tempRow][tempCol] != ' '))
+			{
+				cout << "Invalid row or column number." << endl << "Enter the correct row and column number: ";
+				cin >> tempRow >> tempCol;
+			}
 			rowNum = tempRow;
 			colNum = tempCol;
-			Board::board[(SIZE - 1) - rowNum][colNum] = 'w';
+			Board::board[(SIZE - 1) - rowNum][colNum] = 'w'; // adjust placement row location for board
 		}
-		else if (i >= numWhite)
+		for (int j = 0; j < numBlack; ++j)
 		{
+			cout << "Enter the row and column number for a black disk: ";
+			cin >> tempRow >> tempCol;
 			rowNum = tempRow;
 			colNum = tempCol;
-			Board::board[(SIZE - 1) - rowNum][colNum] = 'b';
+			// verifiy placement is withing bound
+			while ((!inBound(tempRow, tempCol)) || (Board::board[(SIZE - 1) - tempRow][tempCol] != ' '))
+			{
+				cout << "Invalid row or column number." << endl << "Enter the correct row and column number: ";
+				cin >> tempRow >> tempCol;
+			}
+			rowNum = tempRow;
+			colNum = tempCol;
+			Board::board[(SIZE - 1) - rowNum][colNum] = 'b';  // adjust placement row location for board
 		}
-	}
-	return;
-}
-void Board::displayBoard()
-{
-	// PRE: user has initialized board array
-	// POST: board array has been read and printed to user
-
-	// print each element of array post user intitialization
-	for (int i = 0; i < SIZE; ++i)
-	{
-		cout << endl;
-		for (int j = 0; j < SIZE; ++j)
-		{
-			if (board[i][j] == 32)
-				cout << 0 << "   ";
-			else
-				cout << board[i][j] << "   ";
-		}
-		cout << endl;
-	}
-}
-void Board::set(int row, int col, char color = ' ')
-{
-	// PRE: the values of row, col, and color have been passed
-	// passed through the function as arguments after being defined
-	// POST: the element in array 'board' at the designated location
-	// at 'row' and 'col' has been intitialized with color
-
-	// verify user choice for column, row, and color are within scope
-	if ((row <= 7 && row >= 0) && (col <= 7 && col >= 0) && ( (color == 'w') || (color == 'b') || (color == ' ') ) )
-	{
-		rowNum = row;
-		colNum = col;
-		colorChoice = color;
-	}
 	
-	if (colorChoice == 'w')  // if caller chose white set that square to white
-	{
-		Board::board[(SIZE - 1) - rowNum][colNum] = 'w';
-	}
-	else if (colorChoice == 'b')  // if caller chose black then set the square to black
-	{
-		Board::board[(SIZE - 1) - rowNum][colNum] = 'b';
-	}
-	else if (colorChoice == ' ')  // if caller chose blank then set the square to be blank
-	{
-		Board::board[(SIZE - 1) - rowNum][colNum] = ' ';
-	}
-	else// if value is outside of scope
-	{
-		cout << "ERROR: row, column, and or your color choice are invalid." << endl
-			<< "Enter the row, column, and choice of color: ";
-		cin >> row >> col >> color;
-		color = tolower(color);
-		Board::set(row, col, color);
-	}
+	return;
 }
 int Board::resultOfMove(int row, int col, char color)
 {
+	// PRE: bestMove function has been called
+	// nested for loop has been executed and values are passed through arguments above
+	// color has default argument of 'b'
+	// POST: maximum value of placement has been determined and passed back to bestMove function for comparison
 	int moveCount = 0;
 	int tempCount = 0;
 	for (int i = -1; i <= 1; ++i)
 	{
 		for (int j = -1; j <= 1; ++j)
 		{
-			if (board[row + (1 * i)][col + (1 * j)] == color)
+			if (board[row + (1 * i)][col + (1 * j)] == color)  // if adjacent adjacent square contains a black disk
 			{
 				
-				currentRow = row + (1 * i);
-				currentCol = col + (1 * j);
-				deltaRow = 1 * i;
-				deltaCol = 1 * j;
+				currentRow = row + (1 * i);  // set current row to adjacent square 
+				currentCol = col + (1 * j);  // ste current col to adjacent square
+				deltaRow = 1 * i;  // set change of row
+				deltaCol = 1 * j;  // set change of col
 				
-			if (checkFlank(deltaRow, deltaCol, currentRow, currentCol, tempCount))
+			if (checkFlank(deltaRow, deltaCol, currentRow, currentCol, tempCount))  // check each adacent location for flank
 			{
 				moveCount += tempCount;
 				tempCount = 0;
@@ -381,8 +350,11 @@ int Board::resultOfMove(int row, int col, char color)
 }
 int Board::bestMove(int& row, int& col, char color)
 {
-	int numBlack = 0;
-	int maxNumBlack = 0;
+	// PRE: function has been called from main function
+	// functions checkFlank and resultOfMove have been called, executed, and returned their final values
+	// POST: best placement has been determined and returned to main function for further execution
+	int numBlack = 0;  // stores number of black disks flipped after a placement
+	int maxNumBlack = 0; // stores maximum number of black disks flipped out of all possible placements
 	for (int i = 0; i < SIZE; ++i)
 	{
 		for (int j = 0; j < SIZE; ++j)
@@ -390,8 +362,19 @@ int Board::bestMove(int& row, int& col, char color)
 			if (board[i][j] == ' ')
 			{
 				numBlack = resultOfMove(i, j, color);
-				//	cout << numBlack << " ";
-				if (numBlack >= maxNumBlack)
+				
+				if (numBlack == maxNumBlack && (row < i))  // sets minimum row if multiple same results have been determined
+				{
+					maxNumBlack = numBlack;
+					row = i;
+				}
+				if (numBlack == maxNumBlack && (col < j)) // sets minimum col if multiple same results have been determined
+				{
+					maxNumBlack = numBlack;
+					col = col;
+				}
+			
+				if (numBlack > maxNumBlack)
 				{
 					maxNumBlack = numBlack;
 					row = i;
@@ -405,23 +388,22 @@ int Board::bestMove(int& row, int& col, char color)
 
 int main()
 {
-	int total = 0;
-	int finalTotal = 0;
-	int bestRow = 0;
-	int bestCol = 0;
-	int numBlack = 0;
-	int numWhite = 0;
+	int total = 0;  // stores total black disks flipped
+	int finalTotal = 0;  // stores result of white disks - black disks
+	int bestRow = 0;  // stores row location for best placement
+	int bestCol = 0;  // stores column location for best placement
+	int numBlack = 0;  // stores number of black disks placed by user
+	int numWhite = 0;  // stores number of white disks placed by user
 	Board userInput;  // declare object of type board to store user's input
 	userInput.setNumPieces(); // set the number of white and black pieces
-	userInput.setBoard();  // setup the board with user provided data
-	numWhite = userInput.count('w');
-	numBlack = userInput.count('b');
-	//userInput.displayBoard();  // display board to user
-	total = userInput.bestMove(bestRow, bestCol, 'b');
-	numBlack = numBlack - total;
-	numWhite = (numWhite + 1) + total;
-	finalTotal = numWhite - numBlack;
-	cout << (SIZE -1) - bestRow << " " << bestCol << " " << finalTotal << endl;
+	userInput.set();  // setup the board with user provided data 
+	numWhite = userInput.count('w');  // computes number of white disks placed by user
+	numBlack = userInput.count('b');  // computes number of black disks placed by user
+	total = userInput.bestMove(bestRow, bestCol, 'b');  // computes maximum number of black disks flipped 
+	numBlack = numBlack - total;  // computes final number of black disks after best placement has been determined
+	numWhite = (numWhite + 1) + total; // computes final number of white disks after best placement has been determined
+	finalTotal = numWhite - numBlack;  // computes final score
+	cout << (SIZE -1) - bestRow << " " << bestCol << " " << finalTotal << endl;  // print results
 	system("pause");
 	return 0;
 }
